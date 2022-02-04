@@ -56,7 +56,12 @@ func resourceUser() *schema.Resource {
 				ForceNew:      true,
 				ConflictsWith: []string{"plaintext_password", "password"},
 			},
-
+			"authentication_using": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"plaintext_password", "password"},
+			}, 
 			"tls_option": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -85,6 +90,12 @@ func CreateUser(d *schema.ResourceData, meta interface{}) error {
 			authStm = " IDENTIFIED WITH AWSAuthenticationPlugin as 'RDS'"
 		case "mysql_no_login":
 			authStm = " IDENTIFIED WITH mysql_no_login"
+		case "pam":
+			if using, ok := d.GetOk("authentication_using"); ok {
+				authStm = fmt.Sprintf(" IDENTIFIED WITH pam USING '%s'", using)	
+			} else {
+				authStm = " IDENTIFIED WITH pam "
+			}
 		}
 	}
 
