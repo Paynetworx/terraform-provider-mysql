@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/Paynetworx/mysql"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
