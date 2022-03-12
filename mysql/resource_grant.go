@@ -71,15 +71,7 @@ func resourceGrant() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
-			},
-
-			"roles": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"privileges"},
-				Elem:          &schema.Schema{Type: schema.TypeString},
-				Set:           schema.HashString,
+				Required: true,
 			},
 
 			"grant": {
@@ -168,21 +160,8 @@ func CreateGrant(d *schema.ResourceData, meta interface{}) error {
 		grantOn           string
 	)
 
-	hasPrivs := false
-	rolesGranted := 0
-	if attr, ok := d.GetOk("privileges"); ok {
-		privilegesOrRoles = flattenList(attr.(*schema.Set).List(), "%s")
-		hasPrivs = true
-	} else if attr, ok := d.GetOk("roles"); ok {
-		if !hasRoles {
-			return fmt.Errorf("Roles are only supported on MySQL 8 and above")
-		}
-		listOfRoles := attr.(*schema.Set).List()
-		rolesGranted = len(listOfRoles)
-		privilegesOrRoles = flattenList(listOfRoles, "'%s'")
-	} else {
-		return fmt.Errorf("One of privileges or roles is required")
-	}
+	attr := d.Get("privileges")
+	privilegesOrRoles = flattenList(attr.(*schema.Set).List(), "%s")
 
 	user := d.Get("user").(string)
 	host := d.Get("host").(string)
@@ -197,9 +176,7 @@ func CreateGrant(d *schema.ResourceData, meta interface{}) error {
 
 	table := formatTableName(d.Get("table").(string))
 
-	if (!isRole || hasPrivs) && rolesGranted == 0 {
-		grantOn = fmt.Sprintf(" ON %s.%s", database, table)
-	}
+	grantOn = fmt.Sprintf(" ON %s.%s", database, table)
 
 	stmtSQL := fmt.Sprintf("GRANT %s%s TO %s",
 		privilegesOrRoles,
