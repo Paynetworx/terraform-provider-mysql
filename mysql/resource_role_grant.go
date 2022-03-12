@@ -11,6 +11,7 @@ import (
 func resourceRoleGrant() *schema.Resource {
 	return &schema.Resource{
 		Create: CreateRoleGrant,
+		Read:   ReadRoleGrant,
 		Delete: DeleteRoleGrant,
 
 		Schema: map[string]*schema.Schema{
@@ -78,5 +79,9 @@ func DeleteRoleGrant(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error revoking (%s): %s", sql, err)
 	}
 
+	return nil
+}
+
+func ReadRoleGrant(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
