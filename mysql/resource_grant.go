@@ -68,7 +68,6 @@ func resourceGrant() *schema.Resource {
 
 			"privileges": {
 				Type:     schema.TypeSet,
-				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 				Required: true,
