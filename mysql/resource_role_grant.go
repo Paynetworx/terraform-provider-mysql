@@ -46,7 +46,7 @@ func CreateRoleGrant(d *schema.ResourceData, meta interface{}) error {
 	host := d.Get("host").(string)
 	role := d.Get("role").(string)
 
-	stmtSQL := fmt.Sprintf("GRANT %s TO %s@%s", role, user, host)
+	stmtSQL := fmt.Sprintf("GRANT '%s' TO '%s'@'%s'", role, user, host)
 
 	log.Println("Executing statement:", stmtSQL)
 	_, err = db.Exec(stmtSQL)
@@ -72,7 +72,7 @@ func DeleteRoleGrant(d *schema.ResourceData, meta interface{}) error {
 
 
 	var sql string
-	sql = fmt.Sprintf("REVOKE %s FROM %s@%s", role, user, host)
+	sql = fmt.Sprintf("REVOKE '%s' FROM '%s'@'%s'", role, user, host)
 	log.Printf("[DEBUG] SQL: %s", sql)
 	_, err = db.Exec(sql)
 	if err != nil {
