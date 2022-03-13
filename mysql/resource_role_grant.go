@@ -2,6 +2,9 @@ package mysql
 
 import (
 	"fmt"
+	"database/sql"
+	"strings"
+	"regexp"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -83,5 +86,54 @@ func DeleteRoleGrant(d *schema.ResourceData, meta interface{}) error {
 }
 
 func ReadRoleGrant(d *schema.ResourceData, meta interface{}) error {
+	db, err := meta.(*MySQLConfiguration).GetDbConn()
+	if err != nil {
+		return err
+	}
+
+	user := d.Get("user").(string)
+	host := d.Get("host").(string)
+	role := d.Get("role").(string)
+
+	id := fmt.Sprintf("%s@%s:%s", user, host, role)
+
+
+	stmtSQL := fmt.Sprintf("SHOW GRANTS FOR '%s'", user)
+	rows, err := db.Query(stmtSQL)
+
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	re := regexp.MustCompile(`^GRANT (.+) TO`)
+	found := false
+
+	for rows.Next() {
+		var rawGrant string
+
+		err := rows.Scan(&rawGrant)
+
+		if err != nil {
+			return err
+		}
+
+		m := re.FindStringSubmatch(rawGrant)
+
+		if len(m) == 2 {
+			role_name := strings.Trim(m[1],"'")
+			if( role_name  == role ){
+				found = true
+			}
+		}
+
+	}
+
+	if(found){
+		d.SetId(id)
+	}else{
+		d.SetId("")
+	}
 	return nil
 }
